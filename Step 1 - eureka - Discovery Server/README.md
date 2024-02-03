@@ -20,7 +20,17 @@ Modulos desenvolvidos ao longo do curso O Projeto Dev
 <p>Gerencia o acesso aos microsserviços a partir de uma solicitação, listando e direcionando o Gateway ao endereço mais apropriado em termos de função, status e disponibilidade.</p><br>
 
 ### Criação
-<p>Após criado o projeto, </p>
+<p>Após criado o projeto pelo Spring Initializr, foram realizados os seguintes passos:
+<li>Inclusão da Anotação @EnableEurekaServer na classe principal, indicando ser um Discovery Seerver (Eureka)</li>
+<li>no arquivo application.properties, incluir as seguintes configurações:</li>
+<p>
+<ol>server.port=8761</ol>
+<ol>eureka.client.register-with-eureka=false</ol>
+<ol>eureka.client.fetch-registry=false</ol>
+</p>
+</p>
+
+<br>
 
 <p>
 Com o Servidor estabelecido e sua base configurada, é necessário deixa-lo rodando constantemente, para que o Gateway possa acessá-lo a qualquer momento.<br>
