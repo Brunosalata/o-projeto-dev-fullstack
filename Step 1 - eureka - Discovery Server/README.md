@@ -7,7 +7,7 @@ Modulos desenvolvidos ao longo do curso O Projeto Dev
 <li>Java 17</li>
 <li>Packaging - Jar</li>
 <li>Gerenciador de dependências - Gradle-Groovy</li>
-<li>Adição da Dependência 'Eureka Discovery Client'</li>
+<li>Adição da Dependência 'Eureka Server'</li>
 
 #### Ferramentas
 <li>Gradle Plugin para o VSCode - Acesso às ferramentas Gradle</li>
