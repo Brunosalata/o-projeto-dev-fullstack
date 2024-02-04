@@ -9,3 +9,7 @@ Modulos desenvolvidos ao longo do curso O Projeto Dev
 ### 2 - Product
 <p>Discovery Client (Eureka) - API que identifica o microserviço ao Discovery Server</p>
 <p>CRUD responsável pelo gerenciamento de produtos.</p>
+
+### 3 - Gateway
+<p>Discovery Client (Eureka) - API que promove comunicação entre Requerimentos e Serviços, por intermédio do Discovery Server</p>
+<p>Responsável pelo gerenciamento das rotas de acesso aos serviços.<br>Para que funcione, todos as estruturas devem estar contidas no mesmo workspace, caso contrário, o Gateway não comunica corretamente com os serviços. Logo, não funciona.</p>

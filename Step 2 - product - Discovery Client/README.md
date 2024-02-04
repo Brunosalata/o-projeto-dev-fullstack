@@ -5,6 +5,8 @@ Modulos desenvolvidos ao longo do curso O Projeto Dev
 #### Características
 <li>Criaçao via Spring Initializr</li>
 <li>Java 17</li>
+<li>artifact: product</li>
+<li>com.brunosalata.fullstackproject.product</li>
 <li>Packaging - Jar</li>
 <li>Gerenciador de dependências - Gradle-Groovy</li>
 <li>Adição das Dependências 'Eureka Discovery Client' e 'Spring Web'</li>
