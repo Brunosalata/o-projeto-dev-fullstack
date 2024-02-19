@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: gateway-server
+  sql:
+    init:
+      platform: postgres
+  datasource:
+    url: jdbc:postgresql://localhost:5432/eurekadb
+    username: postgres
+    password: Thaisebruno10
+    driverClassName: org.postgresql.Driver
   cloud:
     gateway:
       mvc:
@@ -12,6 +20,8 @@ spring:
           uri: lb://PRODUCT-SERVICE
           predicates:
           - Path=/**
+          # filters:
+          # - AuthFilter
 
 eureka:
   instance:
