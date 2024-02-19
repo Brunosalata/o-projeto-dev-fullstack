@@ -221,9 +221,12 @@ Esse método solicita (@RequestBody) como parâmetro um objeto da classe Product
 <ol>- Database -> Que será personalizado para o projeto</ol> </li>
 <li>Seleciona o Grupo desejado e cria um novo database, no caso eurekadb.</li>
 <li>Criar a tabela 'product', contendo as colunas:
-<ol>id - character (50)</ol>
-<ol>name - character (50)</ol>
-<ol>description - text</ol>
+
+    product:
+    - id (character varying 50)
+    - name (character varying 50)
+    - description (text)
+
 </li>
 </p>
 

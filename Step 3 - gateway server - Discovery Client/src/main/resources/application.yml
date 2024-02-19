@@ -14,14 +14,13 @@ spring:
     driverClassName: org.postgresql.Driver
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: product-service
-          uri: lb://PRODUCT-SERVICE
-          predicates:
-          - Path=/**
-          # filters:
-          # - AuthFilter
+      routes:
+      - id: product-service
+        uri: lb://PRODUCT-SERVICE
+        predicates:
+        - Path=/**
+        # filters:
+        # - AuthFilter
 
 eureka:
   instance:

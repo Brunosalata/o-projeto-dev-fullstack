@@ -46,12 +46,11 @@ Converter a extensão do arquivo 'application.properties' para 'application.yml'
       application:
         name: gateway-server
       cloud:
-        mvc:
-          routes:
-          - id: product-service
-            uri: lb://PRODUCT-SERVICE
-            predicates:
-            - Path=/**
+        routes:
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+          - Path=/**
 
     eureka:
       instance:
@@ -118,14 +117,13 @@ Ficando da seguinte forma:
       driverClassName: org.postgresql.    Driver
     cloud:
       gateway:
-        mvc:
-          routes:
-          - id: product-service
-            uri: lb://PRODUCT-SERVICE
-            predicates:
-            - Path=/**
-            filters:
-            - AuthFilter
+        routes:
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+          - Path=/**
+          filters:
+          - AuthFilter
 
 Etapa 3 - Criar pacotes e classes para trabalhar com Usuários.<br>
 <li>controller
@@ -148,7 +146,7 @@ Etapa 4 - Criar a classe User.java, contendo os atributos id, login, password e 
 
     @SuppressWarnings("serial")
     @Entity
-    @Table(name = "user")
+    @Table(schema = "public", name = "user")
     public class User implements Serializable {
     
         @Id
@@ -193,6 +191,27 @@ Replicar a criação do ProductController e ProductForm, mas contendo os atribut
     @NotBlank
     private String password;
 
-Etapa 7 - Testar métodos GET, POST, PUT e DELETE no Postman.
+Etapa 7 - Criar tabela 'user' no database.<br><br>
+
+    user:
+    - id (character varying 50)
+    - login (character varying 50)
+    - password (character varying 50)
+    - profile (character varying 50)
+
+
+Etapa 8 - Testar métodos GET, POST, PUT e DELETE no Postman.<br>
+
+URL:
+
+    http://localhost:8080/user
+
+JSON:
+
+    {
+      "login": "thaisSevilhano",
+      "password": "54321"
+    }
+ 
 </p>
 

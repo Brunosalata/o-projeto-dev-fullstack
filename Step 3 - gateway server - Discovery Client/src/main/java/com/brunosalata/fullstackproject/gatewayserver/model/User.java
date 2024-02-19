@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "user")
+@Table(schema="public", name = "user")
 public class User implements Serializable {
     
     @Id
