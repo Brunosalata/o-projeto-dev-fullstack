@@ -13,3 +13,9 @@ Modulos desenvolvidos ao longo do curso O Projeto Dev
 ### 3 - Gateway
 <p>Discovery Client (Eureka) - API que promove comunicação entre Requerimentos e Serviços, por intermédio do Discovery Server</p>
 <p>Responsável pelo gerenciamento das rotas de acesso aos serviços.<br>Para que funcione, todos as estruturas devem estar contidas no mesmo workspace, caso contrário, o Gateway não comunica corretamente com os serviços. Logo, não funciona.</p>
+<p>Itens presentes:
+<li>CRUD responsável pelo gerenciamento de User</li>
+<li>Criptografia com SHA-256 para armazenar senha</li>
+<li>Autenticação por token (jwt)</li>
+<li>Filtro de rotas (acesso liberado apenas a Usuários autenticados, com token válido)</li>
+</p>

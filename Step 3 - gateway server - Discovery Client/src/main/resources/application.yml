@@ -19,8 +19,8 @@ spring:
         uri: lb://PRODUCT-SERVICE
         predicates:
         - Path=/**
-        # filters:
-        # - AuthFilter
+        filters:
+        - AuthFilter
 
 eureka:
   instance:
@@ -28,3 +28,9 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
+
+jwt:
+  secret: xx22xxxxxxxxxxxxxxxY
+  token:
+    validity: 864000000
+    prefix: Bearer

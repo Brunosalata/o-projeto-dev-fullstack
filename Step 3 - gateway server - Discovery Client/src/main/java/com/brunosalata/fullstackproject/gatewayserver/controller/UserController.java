@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.brunosalata.fullstackproject.gatewayserver.model.User;
 import com.brunosalata.fullstackproject.gatewayserver.repository.UserRepository;
+import com.brunosalata.fullstackproject.gatewayserver.util.CryptoUtil;
 
 import jakarta.validation.Valid;
 
@@ -42,11 +43,11 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<String> create(@Valid @RequestBody UserForm form){
+    public ResponseEntity<String> create(@Valid @RequestBody UserForm form) throws Exception{
         User user = new User();
         user.setId(UUID.randomUUID().toString());
         user.setLogin(form.getLogin());
-        user.setPassword(form.getPassword());
+        user.setPassword(CryptoUtil.encrypt(form.getPassword()));
         user = userRepository.save(user);
         return ResponseEntity.ok(user.getId());
     }
@@ -70,14 +71,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> update(@Valid @RequestBody UserForm form, @PathVariable String id) {
+    public ResponseEntity<User> update(@Valid @RequestBody UserForm form, @PathVariable String id) throws Exception {
         Optional<User> op = userRepository.findById(id);
         if(op.isEmpty()) {
             return ResponseEntity.of(op);
         }
         User user = op.get();
         user.setLogin(form.getLogin());
-        user.setPassword(form.getPassword());
+        user.setPassword(CryptoUtil.encrypt(form.getPassword()));
         user = userRepository.save(user);
 
         return ResponseEntity.ok(user);

@@ -209,9 +209,349 @@ URL:
 JSON:
 
     {
-      "login": "thaisSevilhano",
+      "login": "Brunosalata",
       "password": "54321"
     }
  
 </p>
 
+### Criptografia com SHA-256
+
+<p>Criptografar a senha antes que seja enviada ao banco de dados. Com isso, não é necessário armazenar ou manipular a senha propriamente, mas uma representação dela, aumentando a segurança.
+</P>
+<p>Etapa 1 - Criar um pacote 'util' dentro de gateway, contendo a classe CryptoUtil.java.<br>
+Classes utilitarias são classes que apenas realizam alguma função, retornam o que voce precisa e são encerradas.</p>
+<p>A classe fica da seguinte forma:
+
+    package com.brunosalata.  fullstackproject. gatewayserver.util;
+
+    import java.io.   UnsupportedEncodingException;
+    import java.security. MessageDigest;
+    import java.security.   NoSuchAlgorithmException;
+
+    import org.apache.commons.  codec.binary. Base64;
+
+    public class CryptoUtil {
+    
+      public static String encrypt(String plainText) throws Exception {
+          MessageDigest md = null;
+  
+          try{
+              md = MessageDigest.getInstance("SHA");
+          } catch (NoSuchAlgorithmException e){
+              throw new Exception(e.getMessage());
+          }
+  
+          try{
+              md.update(plainText.getBytes("UTF-8"));
+          } catch (UnsupportedEncodingException e) {
+              throw new Exception(e.getMessage());
+          }
+  
+          byte raw[] = md.digest();
+          try{
+              return new String(Base64.encodeBase64(raw), "UTF-8");
+          } catch (Exception use) {
+              throw new Exception(use);
+          }
+      }
+    }
+
+Então, devemos chamar essa classe e método toda vez que precisarmos criptografar um valor. Por ora, chamamos no método 'create' e 'update' na classe UserController, ficando da seguinte forma:
+
+    
+    @PostMapping
+    public ResponseEntity<String> create(@Valid @RequestBody UserForm form) throws Exception{
+        User user = new User();
+        user.setId(UUID.randomUUID().toString());
+        user.setLogin(form.getLogin());
+        user.setPassword(CryptoUtil.encrypt(form.getPassword()));
+        user = userRepository.save(user);
+        return ResponseEntity.ok(user.getId());
+    }
+
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<User> update(@Valid @RequestBody UserForm form, @PathVariable String id) throws Exception {
+        Optional<User> op = userRepository.findById(id);
+        if(op.isEmpty()) {
+            return ResponseEntity.of(op);
+        }
+        User user = op.get();
+        user.setLogin(form.getLogin());
+        user.setPassword(CryptoUtil.encrypt(form.getPassword()));
+        user = userRepository.save(user);
+
+        return ResponseEntity.ok(user);
+    }
+</p>
+
+### Autenticando rotas com JWT
+
+<p>Autentica o usuário logado por meio de um token, contendo todas as informações que julgarmos necessárias. Sempre que o usuário fizer uma requisição que necessite autenticação, esse token deverá ser enviado no cabeçalho. O servidor descriptografará o token e verificará se as informações batem para retornar o que foi requisitado.
+</P>
+<p>Etapa 1 - Inclusão da biblioteca JWT no build.gradle
+
+    implementation group: 'io.jsonwebtoken', name: 'jjwt', version '0.9.1'    
+</p>
+<p>Etapa 2 - Configurações no application.yml
+
+    jwt:
+      secret: xx22xxxxxxxxxxxxxxxY
+      token:
+        validity: 864000000
+        prefix: Bearer    
+</p>
+<p>Etapa 3 - criar um pacote service, contendo a classe JwtService, dentro do projeto gateway
+
+    import java.util.Date;
+    import org.springframework.beans.factory.annotation.Value;
+    import org.springframework.stereotype.Service;
+
+    import io.jsonwebtoken.Claims;
+    import io.jsonwebtoken.Jwts;
+    import io.jsonwebtoken.SignatureAlgorithm;
+
+    @Service
+    public class JwtService {
+    
+      @Value("${jwt.secret}")
+      private String jwtSecret;
+      @Value("${jwt.token.validity}")
+      private long tokenValidity;
+
+      public String generateToken(String id){
+          Claims claims = Jwts.claims().setSubject(id);
+          long nowMillis = System.currentTimeMillis();
+          long expMillis = nowMillis + tokenValidity;
+          Date exp = new Date(expMillis);
+          return Jwts.builder().setClaims(claims).setIssuedAt(new Date(nowMillis)).setExpiration(exp).signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
+      }
+
+      public void validateToken(final String token) throws Exception {
+          Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+      }
+
+      public Claims getClaims(final String token) {
+          try{
+              return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+          } catch (Exception e) {
+              System.out.println(e.getMessage() + " => " + e);
+          }
+          return null;
+      }
+    }
+
+</p>
+<p>Etapa 4 - criar uma classe controller, para que o usuário possa fazer o login. Para isso, criamos as classes AuthController.java e AuthForm.java dentro do pacote controller.
+<br><br>
+Classe AuthController
+
+    import org.springframework.web.bind.annotation.RestController;
+
+    import com.brunosalata.fullstackproject.gatewayserver.repository.   UserRepository;
+    import com.brunosalata.fullstackproject.gatewayserver.service.    JwtService;
+    import com.brunosalata.fullstackproject.gatewayserver.util.   CryptoUtil;
+
+    import org.springframework.boot.autoconfigure.security.   SecurityProperties.User;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.PostMapping;
+    import org.springframework.web.bind.annotation.RequestBody;
+
+
+    @RestController
+    public class AuthController {
+
+        private UserRepository userRepository;
+        private JwtService jwtService;
+
+        public AuthController(UserRepository userRepository,    JwtService jwtService) {
+            super();
+            this.userRepository = userRepository;
+            this.jwtService = jwtService;
+        }
+
+        @PostMapping("/auth/login")
+        public ResponseEntity<String> login(@RequestBody AuthForm     form) throws Exception {
+
+            User user = userRepository.findByLogin(form.getLogin());
+            if(user == null){
+                return new ResponseEntity<String>(HttpStatus.   UNAUTHORIZED);
+            }
+            if(!user.getPassword().equals(CryptoUtil.encrypt(form.    getPassword()))){
+                return new ResponseEntity<String>(HttpStatus.   UNAUTHORIZED);
+            }
+
+            String token = jwtService.generateToken(user.getLogin());
+            return new ResponseEntity<String>(token, HttpStatus.OK);
+        }
+
+    }
+
+<br>
+Classe AuthForm
+
+    import org.springframework.web.bind.annotation.RestController;
+
+    import com.brunosalata.fullstackproject.gatewayserver.repository.UserRepository;
+    import com.brunosalata.fullstackproject.gatewayserver.service.JwtService;
+    import com.brunosalata.fullstackproject.gatewayserver.util.CryptoUtil;
+    import com.brunosalata.fullstackproject.gatewayserver.model.User;
+    
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.PostMapping;
+    import org.springframework.web.bind.annotation.RequestBody;
+    
+    
+    @RestController
+    public class AuthController {
+        
+        private UserRepository userRepository;
+        private JwtService jwtService;
+    
+        public AuthController(UserRepository userRepository, JwtService jwtService) {
+            super();
+            this.userRepository = userRepository;
+            this.jwtService = jwtService;
+        }
+    
+        @PostMapping("/auth/login")
+        public ResponseEntity<String> login(@RequestBody AuthForm form) throws Exception {
+            
+            User user = userRepository.findByLogin(form.getLogin());
+            if(user == null){
+                return new ResponseEntity<String>(HttpStatus.UNAUTHORIZED);
+            }
+            if(!user.getPassword().equals(CryptoUtil.encrypt(form.getPassword()))){
+                return new ResponseEntity<String>(HttpStatus.UNAUTHORIZED);
+            }
+    
+            String token = jwtService.generateToken(user.getLogin());
+            return new ResponseEntity<String>(token, HttpStatus.OK);
+        }
+        
+    }
+
+</p>
+<p> Para rodar corretamente, é necessário incluir a seguinte biblioteca:
+
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+
+Isso porque, a classe javax.xml.bind.DatatypeConverter faz parte do pacote java.xml.bind, que foi removido do Java SE a partir da versão 11. Caso não seja incluída, o sistema dá erro por não encontrar essa classe no projeto.
+</p>
+
+<p>Partimos para validação via Postman. Criando um Request POST, para o caminho:
+
+    http://localhost:8080/auth/login
+
+Contendo um json referente a algum usuário já existente, como:
+
+    {
+        "login": "bruno",
+        "password": "123"
+    }
+
+Caso algo não esteja batendo, ele retorna vazio, mas indicando "Não autorizado". Por outro lado, caso login e senha estejam corretos, o sistema retorna um token de autenticação.
+</p>
+
+### Proteção de rotas por filtro
+
+<p>Criação de um filtro que permite acesso apenas a usuários autenticados.
+</P>
+<p>Etapa 1 - Criação de um pacote filter, contendo a da classe AuthFilter
+
+    import java.util.List;
+
+    import org.springframework.beans.factory.annotation.Value;
+    import org.springframework.cloud.gateway.filter.GatewayFilter;
+    import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.server.reactive.ServerHttpRequest;
+    import org.springframework.http.server.reactive.ServerHttpResponse;
+    import org.springframework.stereotype.Component;
+    import org.springframework.web.server.ServerWebExchange;
+
+    import com.brunosalata.fullstackproject.gatewayserver.service.JwtService;
+    import com.google.common.base.Predicate;
+
+    import io.jsonwebtoken.Claims;
+    import reactor.core.publisher.Mono;
+
+    @Component
+    public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> {
+
+    	private JwtService jwtService;
+    	@Value("${jwt.token.prefix}")
+    	private String tokenPrefix;
+
+    	public AuthFilter(JwtService jwtService) {
+    		super(Config.class);
+    		this.jwtService = jwtService;
+    	}
+
+    	private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
+    		ServerHttpResponse response = exchange.getResponse();
+    		response.setStatusCode(httpStatus);
+    		return response.setComplete();
+    	}
+
+    	@Override
+    	public GatewayFilter apply(Config config) {
+    		return (exchange, chain) -> {
+
+    			ServerHttpRequest request = (ServerHttpRequest) exchange.getRequest();
+
+    			final List<String> apiEndpoints = List.of("/auth/login");
+
+    			Predicate<ServerHttpRequest> isApiSecured = r -> apiEndpoints.stream()
+    					.noneMatch(uri -> r.getURI().getPath().contains(uri));
+
+    			if (isApiSecured.apply(request)) {
+
+    				if (!request.getHeaders().containsKey("Authorization")) {
+    					return this.onError(exchange, "No Authorization header", HttpStatus.    UNAUTHORIZED);
+    				}
+
+    				String token = request.getHeaders().getOrEmpty("Authorization").get(0);
+    				token = token.replace(tokenPrefix, "");
+
+    				try {
+    					jwtService.validateToken(token);
+    				} catch (Exception e) {
+    					ServerHttpResponse response = exchange.getResponse();
+    					response.setStatusCode(HttpStatus.BAD_REQUEST);
+    					return response.setComplete();
+    				}
+
+    				Claims claims = jwtService.getClaims(token);
+    				exchange.getRequest().mutate().header("x-user", String.valueOf(claims.get   ("sub"))).build();
+
+    				return chain.filter(exchange.mutate().request(request).build());
+
+    			}
+
+    			return chain.filter(exchange);
+    		};
+    	}
+
+    	public static class Config {
+    		// Put the configuration properties
+    	}
+    }    
+
+Então, incluir 
+
+    filter
+    - AuthFilter
+
+para a rota de product, dentro do arquivo application.yml
+</p>
+
+<p>Partimos para validação via Postman. Request do tipo GET para produtos, pelo caminho:
+
+    http://localhost:8080/product
+
+Ele deverá retornar vazio, mas contendo Não autorizado. Para acessar o conteúdo, geramos um token pelo auth/login, copiamos ele, selecionamos a aba Authorization no GET product, selecionamos o tipo de autorização (Bearer Token), colamos no campo do Token e repetimos o envio da requisição. Dessa vez, é para retornar o conteúdo requerido.
+</p>
