@@ -367,3 +367,109 @@ Para que
 Todos testados via Postman. Funcionando.<br>
 O método delete não retorna nada, o que prejudica a confirmação pelo Postman, sendo necessário chamar o método findAll ou findById para verificar isso. É possível incluir retorno mais adequedo, como '204 No Content', indicando que não existe conteúdo a ser mostrado, indicando sucesso na exclusão.
 </p>
+
+### Mensageria com Apache Kafka
+
+<p><b>Criando um Producer para Kafka</b></p>
+<p>Producer é o elemento que dispara uma mensagem, solicitação para disparo, etc. Por exemplo, quem enviará um e-mail ou solicitará a um microserviço que dispare um e-mail, quando um novo produto é cadastrado.
+</p>
+
+<p>Etapa 1 - Inclusão das bibliotecas Kafka no build.gradle no projeto Product
+
+    implementation 'org.apache.kafka:kafka-streams:3.7.0'
+	implementation 'org.springframework.kafka:spring-kafka:3.1.2'
+
+</p>
+<p>Etapa 2 - Habilitar o apache Kafka no projeto.<br>Na classe principal, ProductApplication, incluir a seguinte anotação:
+
+    @EnableKafka
+
+</p>
+<p>Etapa 3 - Configurando as propriedades dos recursos kafka.
+<br><br>Em application.yml, incluir as configurações do kafka e os pontos 'auto' (cria um topico para kafka automaticamente, caso nao seja indicado) e 'topic' (topico responsavel pela mensagem de enviar email)
+
+    spring:
+      application:
+        name: product-service
+      sql:
+        init:
+          platform: postgres
+      datasource:
+        url: jdbc:postgresql://localhost:5432/eurekadb
+        username: postgres
+        password: Thaisebruno10
+        driverClassName: org.postgresql.Driver
+      kafka:
+        producer:
+          bootstrap-servers: 127.0.0.1:9002 #endereço do Apache Kafka no localhost, que deverá ser alterado quando a aplicação estiver em outro servidor
+          group-id: backend
+          auto-offset-reset: earliest
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+    auto:
+      instance:
+        topics:
+          enable: true
+
+    topic:
+      name:
+        email: send.email
+</p>
+<p>Etapa 4 - Criação do pacote service, para armazenar todos os serviços e regras de negócios desse Service. Nele, criamos a classe ProductService.java.
+<br>:
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import com.brunosalata.fullstackproject.product.model.Product;
+
+@Service
+public class ProductService {
+    
+    @Autowired
+    private final KafkaTemplate<String, String> kafkaTemplate = null;
+    @Value("${topic.name.email}")
+    private String topic;
+    
+    public void saveProduct(Product product){
+        kafkaTemplate.send(topic, product.getId(), product.getName());
+    }
+}
+
+</p>
+<p>Etapa 5 - Habilitar ProductService na classe ProductController. Instanciamos ProductService, inclui no construtor e chama assim que um novo produto é criado. Dentro da classe ProductController, incluir da seguinte forma:
+
+    private ProductRepositoryproductRepository;
+    private ProductService productService;
+
+    public ProductController(ProductRepository productRepository, ProductService productService){
+        super();
+        this.productRepository = productRepository;
+        this.productService = productService;
+    }
+
+    @GetMapping
+    public Iterable<Product> findAll(@WithUser UserInfo user) {
+        System.out.println(user.getLogin());
+        return productRepository.findAll();
+    }
+
+    @PostMapping
+    public ResponseEntity<String> create(@Valid @RequestBody ProductForm form){
+        Product product = new Product();
+        product.setId(UUID.randomUUID().toString());
+        product.setName(form.getName());
+        product.setDescription(form.getDescription());
+        product = productRepository.save(product);
+
+        productService.saveProduct(product);
+
+        return ResponseEntity.ok(product.getId());
+    }
+
+</p>
+
+<p>Próxima etapa é a construção do microserviço mail-service, que será o consumer da mensagem sendProduct, da classe ProductService.</p>
