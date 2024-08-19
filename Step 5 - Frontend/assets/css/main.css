@@ -1,0 +1,10 @@
+body {
+    padding: 20px;
+    background: #45793f;
+    font-size: 16px;
+}
+input {
+    padding: 10px;
+    border: 1px solid black !important;
+    background: white !important;
+}

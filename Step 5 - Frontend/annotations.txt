@@ -1,0 +1,952 @@
+1 - Para definir um valor de algum campo do JavaScript e passa-lo para o HTML, deve-se ter uma função no script chamada 'data', que sempre retornará um objeto JavaScript. Esse objeto estará no formato Chave-valor. (ex. 'nome')
+
+2 - Para definir um vetor, definido como vetor: [] no JavaScript e chamálo no HTML por meio de uma diretiva 'v-for'. (ex. 'vetor')
+
+    <template>
+        <div>
+            <div>
+                {{ nome }}
+            </div>
+            <div 
+              v-for="v in vetor"
+              :key="v">
+                {{ v }}
+            </div>
+        </div>
+    </template>
+    
+    <script>
+    export default {
+        name: 'NuxtTutorial',
+        data() {
+        return {
+            nome: "Nome da variável" ,
+            vetor: [1, 2, 3, 4, 5]
+        }
+        }
+    }
+    </script>
+
+elementos JavaScript chamados no HTML devem receber o sinal ':' indicando que são elementos JavaScript, caso não tivesse os dois pontos, o valor no HTML receberia o valor apontado, como uma String.
+
+3 - Podemos incluir condicionantes à estrutura 'v-for', aplicando 'v-if' ou 'v-show' (diretivas), que podem vir seguidos de == ou !=. A diferença é que 'v-if' ignora a existência dos objetos que não atendam à especificação, enquanto 'v-show' renderiza, mas omite esses objetos.
+
+    <template>
+        <div>
+            <div>
+                {{ nome }}
+            </div>
+            <div 
+              v-for="v in vetor"
+              :key="v"
+              v-if="v == 3">    /** ou v-if="v != 3" // ou v-show="v != 3" // ou v-show="v != 3" 
+                {{ v }}
+            </div>
+        </div>
+    </template>
+    
+    <script>
+    export default {
+        name: 'NuxtTutorial',
+        data() {
+        return {
+            nome: "Nome da variável" ,
+            vetor: [1, 2, 3, 4, 5]
+        }
+        }
+    }
+    </script>
+
+
+4 - Propriedades são valores que serão passados como parâmetro de um componente para outro.
+
+    Tutorial.vue 
+
+        <template>
+            <div>
+                <div>
+                    <h1>{{ nome }}</h1>
+                </div>
+                <div 
+                  v-for="v in vetor"
+                  :key="v"
+                  v-if="v == 3">    
+                    {{ v }}
+                </div>
+            </div>
+        </template>
+
+        <script>
+        export default {
+            name: 'NuxtTutorial',
+            props: ['nome'],
+            data() {
+            return {
+                vetor: [1, 2, 3, 4, 5]
+            }
+            }
+        }
+        </script>
+
+    index.vue (página que chama o componente Tutorial.vue)
+
+        <template>
+          <Tutorial name="Primeiro tutorial"/>
+          <Tutorial name="Segundo tutorial"/>
+        </template>
+
+        <script>
+        export default {
+          name: 'IndexPage'
+        }
+        </script>
+
+Também é possível utilizar uma propriedade em uma variável 'data'.
+
+    <template>
+        <div>
+            <div>
+                <h1>{{ nomeFormatado }}</h1>
+            </div>
+            <div 
+                v-for="v in vetor"
+                :key="v"
+                v-if="v == 3">
+                {{ v }}
+            </div>
+        </div>
+    </template>
+
+    <script>
+    export default {
+        name: 'NuxtTutorial',
+        props: ['nome'],
+        data() {
+        return {
+            nomeFormatado: 'NOME: ' + this.nome,
+            vetor: [1, 2, 3, 4, 5]
+        }
+        }
+    }
+    </script>
+
+5 - Utilização de objetos JavaScript para preencher o HTML com dados. Para isso, criamos um vetor 'produtos', constituído por objetos 'produto'.
+
+    <template>
+      <div>
+        <table>
+          <tr>
+            <th>Nome</th>
+          </tr>
+          <tr v-for="produto in produtos"
+          :key="produto.id">
+            <td>
+              {{ produto.nome }}
+            </td>
+          </tr>
+        </table>
+      </div>
+    </template>
+
+    <script>
+    export default {
+      name: 'IndexPage',
+      data() {
+        return {
+          produtos: [
+            {id: '1', nome: 'O Poderoso Chefão'},
+            {id: '2', nome: 'Narnia'}
+          ]
+        }
+      }
+    }
+    </script>
+
+6 - É possível preencher objetos JavaScript (em data()), consumindo o web service (pelo backend) com auxilio do módulo axios, instalado na criação do projeto ou pelo terminal com o comando 'npm install@nuxtjs/axios'. Para sinalizar ao projeto que esse módulo será usado e está disponível, devemos configurar esse módulo no arquivo 'nuxt.config.js' (no campo 'modules')
+
+  // Modules: https://go.nuxtjs.dev/config-modules
+  modules: [
+    '@nuxtjs/axios'
+  ],
+
+7 - A partir de uma URL, é possível obter objetos, por exemplo, do banco de dados, retornando um objeto ou um vetor contendo um conjunto de objetos. Essa URL pode ser utilizada dentro da estrutura JavaScript 'methods', que é seguido de ':' por se tratar de um objeto, não de uma função, mas que carrega funções como seus atributos. Ela, por sua vez, pode preencher uma variável ou vetor presente no componente do projeto.
+
+    <template>
+      <div>
+        <table>
+          <tr>
+            <th>Nome</th>
+          </tr>
+          <tr v-for="produto in produtos"
+          :key="produto.id">
+            <td>
+              {{ produto.nome }}
+            </td>
+          </tr>
+        </table>
+      </div>
+    </template>
+
+    <script>
+    export default {
+      name: 'IndexPage',
+      data() {
+        return {
+          produtos: []
+        }
+      },
+      methods: {
+        load() {
+            this.$axios.get('http://localhost:8081/produtos').then((resposta) => {
+                this.produtos = resposta.data;
+            });
+        }
+      }
+    
+    }
+    </script>
+
+No exemplo acima, o método somente foi criado, mas não está sendo chamado em nenhum lugar. Para isso, o JavaScript possui dois diferentes métodos que definem o momento no qual esse método acima será chamado. 
+
+    - created: chama o método quando o JavaScript estiver montado, mas não o HTML
+    - mounted: chama o método quando tanto JavaScript quanto o HTML estiverem prontos e renderizados na tela
+
+
+    <script>
+    export default {
+      name: 'IndexPage',
+      data() {
+        return {
+          produtos: [
+            {id: '1', nome: 'O Poderoso Chefão'},
+            {id: '2', nome: 'Narnia'}
+          ]
+        }
+      },
+      methods: {
+        load() {
+            this.$axios.get('http://localhost:8081/ produtos').then((resposta) => {
+                this.produtos = resposta.data;
+            });
+        }
+      },
+      created() {
+        this.load();
+      },
+      mounted() {
+        this.load();
+      }
+    }
+    </script>
+    
+
+OBSERVAÇÃO IMPORTANTE
+Ao tentar acessar a URL via Postman, ou diretamente via browser, seja via método GET, POST, PUT ou DELETE o processo acontecerá normalmente. Contudo, caso o acesso seja feito via frontend, possivelmente acontecerá um erro de CORS, sobre divergência entre servidor do microservido backend (8080) e o do front (3000). Esse é um artifício de segurança do Spring Security que bloqueia qualquer acesso vindo de um servidor não autorizado.
+Para resolver isso, adotamos a anotação de acesso nas classes Controller do microserviço, o que permite ter controle sobre qual servidor poderá acessar os resultados da classe, ou seja, dos métodos nela definidos (GET, PUT, POST, DELETE).
+Abaixo, a parte relevante da classe ProductController no microserviço ProductApplication.
+
+    import org.springframework.web.bind.annotation.CrossOrigin;
+    import jakarta.validation.Valid;
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RestController
+    @RequestMapping("/product")
+    public class ProductController {
+    
+        private ProductRepository productRepository;
+        private ProductService productService;
+
+        public ProductController(ProductRepository productRepository, ProductService productService){
+            super();
+            this.productRepository = productRepository;
+            this.productService = productService;
+        }
+
+        ...
+    }
+
+Importação da classe CrossOrigin e anotação com o servidor do front, contendo todas as especificações.
+
+
+8 - É possível incluir uma condicionante para a construção da tabela, sendo necessário, por exemplo, que 'produtos.length' seja maios que zero, indicando existência de objetos, caso contrário, a tabela não é construída.
+
+    <template>
+      <div>
+        <table
+          v-if="produtos.length > 0">
+          <tr>
+            <th>Id</th>
+            <th>Nome</th>
+          </tr>
+          <tr v-for="produto in produtos"
+          :key="produto.id">
+            <td>{{ produto.id }}</td>
+            <td>{{ produto.nome }}</td>
+          </tr>
+        </table>
+      </div>
+    </template>
+
+9 - Protegendo as rotas, por meio de geração de um token. Para isso, criamos uma página para login e, caso verificado, um toekn é retornado ao usuário.
+A partir dessa página, é fornecido um Login e uma senha para que sejam usados como parâmetro para solicitar um token de validação a partir do método POST.
+
+    <script>
+    export default {
+      name: 'LoginPage',
+      data() {
+        return {
+          user_data: {
+            login: "brunoSalata",
+            password: "123"
+          },
+          mensagem: null
+        }
+      },
+      methods: {
+        login() {
+          this.$axios.post('http://localhost:8080/auth/login', this.user_data)
+          .then((response) => {
+            this.mensagem = response.data;
+          })
+          .catch((e) => this.mensagem = e);
+        }
+      }
+    }
+    </script>
+
+O POST, geralmente, vai acompanhado de um parâmetro, como é o caso do objeto 'user_data', que carrega login e senha.
+Indispensável que os atributos de 'user_data' sejam condizentes com o objeto User, verificado no processo de autenticação. Caso definisse user_data com 'login' e 'senha', daria erro 500 (servidor), visto que User está configurado com 'login' e 'password'.
+
+10 - Para a utilização de valores 'login' e 'senha' informados pelo usuário, criamos um formulário, cujo valor será transmitido à variável respectiva por meio da estrutura v-model. 
+
+    <template>
+      <div>
+        <h1>{{ mensagem }}</h1>
+
+        Login:
+        <input v-model="user_data.login">
+
+        Senha:
+        <input v-model="user_data.password">
+
+        <button @click="login">
+          Login
+        </button>
+      </div>
+    </template>
+
+    <script>
+    export default {
+      name: 'LoginPage',
+      data() {
+        return {
+          user_data: {
+            login: "bruno",
+            password: "123"
+          },
+          mensagem: null
+        }
+      },
+      methods: {
+        login() {
+          this.$axios.post('http://localhost:8080/auth/login', this.    user_data)
+          .then((response) => {
+            console.log(response.data);
+            this.mensagem = response.data;
+          })
+          .catch((e) => this.mensagem = e);
+        }
+      }
+    }
+    </script>
+
+Caso fosse inserido {{ user_data.login }} na interface, puxando os valores da variável, seu preenchimento seria feito de forma síncrona com a alteração do respectivo campos na interface. Mesma ideia do 'bind' em java.
+
+11 - Armazenamento do token no lado do cliente, para que seja acessado sempre que necessário e seja enviado no cabeçalho em toda requisição que necessite autenticação (rota protegida). Para isso, utilizamos o 'store' do vue, que guarda todo o estado da aplicação nele. Qualquer alteração em seus valores tem reflexo reativo em todo o sistema. É possível armazenar qualquer variável desejada, mas armazamos o token e o nome do usuário, para utilização na aplicação. Essas informações estão disponíveis no objeto obtido no processo de autenticação, que retorna o token e o nome do usuário. Caso fosse interessante, poderíamos incluir outros atributos neste objeto.
+Necessário instalar dois plugins.
+
+    Js-Cookies - Armazenamento em cookies 
+
+        npm i js-cookie
+
+    Vuex - Armazenamento no LocalStorage do browser (Alternativa mais indicada: Pinia)
+
+        npm install --save vuex-persistedstate 
+        (erro entre versão do Vue do projeto Vue@2.0 e da versão solicitada para    Vuex)
+
+        npm install --save vuex@3 
+        (instala o Vuex@3.0, que é compatível com Vue@2, mas é melhor serem     ambos 3.0, ou melhor ainda, em vez de Vuex, instalar Pinia)
+
+12 - Iniciamos criando uma pasta 'store' na raiz do projeto, caso ainda não exista. Então, criamos os arquivos 'index.js' e 'auth.js', que são responsáveis pela renderização do HTML no lado do servidor
+
+- index.js = comando que rodará no lado do servidor, verificando se já foi gerado e enviado um token ao usuário, para liberar o acesso.
+
+    export const actions = {
+        async nuxtServerInit ({ dispatch, commit, state}) {
+            const { accessToken, refreshToken } = state.auth
+            if (accessToken && refreshToken) {
+                try {
+                    await dispatch('auth/refresh')
+                } catch (e) {
+                    await dispatch('auth/logout')
+                }
+            }
+        },
+    }
+
+- auth.js é o arquivo de store de autenticação, que armazenará diferentes constantes.
+
+    export const state = () => ({
+        accessToken: null,
+        refreshToken:null,
+        user: null
+    });
+
+    export const getters = {
+        isAuthenticated(state) {
+            return !state.accessToken;
+        },
+        info(state) {
+            return state.user;
+        }
+    };
+
+    export const mutations = {
+        setToken(state, token, refresh) {
+            state.accessToken = token;
+            if(refreshToken){
+                state.refreshToken = refreshToken;
+            }
+        },
+        setUser(state, user) {
+            state.user = user;
+        },
+        logout(state) {
+            state.accessToken = null;
+            state.refreshToken = null;
+            state.user = null;
+        }
+    };
+
+    export const actions = {
+        async login({ commit, dispatch }, req) {
+            let data = req.object || req.data;
+            let user = {
+                login: data.login,
+                name: data.name
+            };
+            let token = data.token;
+
+            commit('setToken', token, token);
+            commit('setUser', user);
+        }
+    };
+
+13 - Para acessarmos o storage, criamos um plugin. Para isso, criamos uma pasta 'plugins' na raiz do projeto. Dentro dele, um arquivo 'local-storage.js'.
+
+    import createPersistedState from 'vuex-persistedstate';
+    import * as Cookies from 'js-cookie';
+    import cookie from 'cookie';
+    
+    export default ({ store, req, isDev }) => {
+        createPersistedState({
+            key: 'ai-auth-cookie',
+            paths: [
+                'auth.accessToken',
+                'auth.refreshToken',
+                'auth.user'
+            ],
+            storage: {
+                getItem: key => process.client ? Cookies.get(key) : cookie.parse    (req.headers.cookie || '')[key],
+                setItem: (key, value) => Cookies.set(key, value, { expires: 14,     secure: !isDev}),
+                removeItem: key => Cookies.remove(key)
+            }
+        })(store);
+    };
+
+Uma vez criado o código, vamos até o arquivo nuxt.config.js e inserir o endereço do plugin na seção plugins
+
+    plugins: [
+      '~/plugins/local-storage'
+    ],
+
+O sinal '~' indica que é a raiz da aplicação.
+
+Agora, já é possível armazenar dados na memória do Vue, que é o storage da memória do Nuxt, que será realizada na página de login (armazenada logo após realizar o login)
+
+14 - Para armazenar o objeto de autenticação (nome + token) no storage, ajustamos o método de login como segue:
+
+    login() {
+      this.$axios.post('/auth/login', this.user_data)
+      .then((response) => {
+        this.$store.dispatch('auth/login', response);
+      })
+      .catch((e) => this.mensagem = e);
+    }
+
+Esse código é constituído pelo nome do arquivo desejado (auth), de dentro da pasta 'store', a ação que desejo executar (login), de dentro do arquivo 'auth', e o parâmetro a ser utilizado (response).
+
+15 - Após verificação das credenciais e armazenamento do objeto contento 'name' e 'token', implementamos o redirecionamento de página, usando o 'router'
+
+    login() {
+      this.$axios.post('/auth/login', this.user_data)
+      .then((response) => {
+        this.$store.dispatch('auth/login', response);
+        this.$router.push('/');
+      })
+      .catch((e) => this.mensagem = e);
+    }
+
+16 - Definindo domínio utilizado do axios, para centralizar a informação da base da URL no arquivo nuxt.config.js.
+
+Em todos os lugares que utilizam axios, aplicar da seguinte forma:
+
+    Antes da alteração
+    
+    this.$axios.post('http://localhost:8080/auth/login', this.user_data)
+
+    Após alteração
+
+    login() {
+      this.$axios.post('/auth/login', this.user_data)
+      .then((response) => {
+        this.mensagem = response.data;
+      })
+      .catch((e) => this.mensagem = e);
+    }
+ 
+A base é implementada na seção axios do arquivo nuxt.config.js
+
+    axios: {
+      baseURL: 'http://localhost:8080'
+    }
+
+17 - Utilizando rotas protegidas. A URL de 'product' está configurada como 8081, que puxa as informações. Quando inserimos a 8080, não traz informação alguma, pois essa é uma rota protegida. Como definimos uma baseURL para o Nuxt, podemos omitir essa parte das URLs ao logo do projeto front.
+
+Para inserir um cabeçalho de autorização, caso o token sejá válido, ou outros procedimentos, caso seja inválido. Criamos um plugin 'axios.js', na pasta 'plugins' e o incluímos no arquivo 'nuxt.config.js'
+    
+    plugins: [
+      '~/plugins/local-storage',
+      '~/plugins/axios'
+    ],
+
+Código do plugin 'axios'
+
+    export default function({
+        store,
+        app: { $axios },
+        redirect
+    }) {
+        $axios.onRequest((config) => {
+            if(store.state.auth.accessToken) {
+                config.headers.Authorization = 'Bearer' + store.state.auth.   accessToken;
+            }
+            return config;
+        });
+    
+        $axios.onError(async (error) => {
+            const statusCode = error.response ? error.response.states : -1;
+    
+            if (statusCode === 401 || statusCode === 422) {
+                const refresh = store.state.auth.refreshToken;
+                if(error.response.data.errorCode === 'JWT_TOKEN_EXPIRED' &&     refreshToken) {
+                    if (Object.prototype.hasOwnProperty,call(error.config,    'retryAttempts')) {
+                        store.commit('auth/logout');
+                        return redirect('/login');
+                    }
+                    const config = { retryAttempts: 1, ...error.config };
+                    try {
+                        await store.dispatch('auth/refresh');
+                        return Promise.resolve($axios(config));
+                    } catch (e) {
+                        store.commit('auth/logout');
+                    }
+                }
+    
+                store.commit('auth/logout');
+                return redirect('/login');
+            }
+    
+            return Promise.reject(error);
+        });
+    }
+
+18 - Proteção das rotas, para que o sistema só permita o acesso caso o usuário tenha sido autenticado. Para isso, criamos uma pasta middleware, na raiz da aplicação, contendo o arquivo 'authenticated.js', responsável pela verificação da autenticação.
+
+    export default function ({ store, redirect }) {
+      let auth = store.getters['auth/isAuthenticated'];
+      if(!auth) {
+        return redirect('/login');
+      }
+    }
+
+Então, implementamos a verificação no arquivo 'page' desejado. Como em 'index.vue' e 'cadastro.vue'.
+
+    <script>
+    export default {
+      middleware: 'authenticated'
+    }
+    </script>
+
+19 - Para verificar o filtro nas rotas, criamos um router na forma de hiperlink, como mostrado abaixo. 
+
+    <template>
+      <div>
+
+        <NuxtLink to="/">Index</NuxtLink>
+        <NuxtLink to="cadastro">Cadastro</NuxtLink>
+        <button @click="logout">Sair</button>
+
+        <Tutorial nome="Primeiro tutorial"/>
+        <Tutorial nome="Segundo tutorial"/>
+      </div>
+    </template>
+
+    <script>
+    export default {
+      middleware: 'authenticated',
+      methods: {
+        logout() {
+          this.$store.dispatch('auth/logout');
+          this.$router.push('/login');
+        }
+      }
+    }
+    </script>
+
+É possível observar o botão de 'logout', que chama o método logout do Javascript, que remove o token de autenticação e direciona para a página de login. 
+
+OBS: Houve um erro com o Vuex, que não reconheceu o comando logout. Não entendi porquê.
+
+20 - Criando Layout para padronizar um ou mais padrões de interface. para isso, criamos uma pasta 'layouts' na raiz do projeto (Necessário que seja esse nome, para que o Vue.js reconheça automaticamente). Nessa página, criamos um componente com estrutura básica, porém, contendo o elemento <touter-view>, dentro do qual será renderizado a página Index.
+
+    <template>
+        <div>
+            <NuxtLink to="/">Index</NuxtLink>
+            <NuxtLink to="cadastro">Cadastro</    NuxtLink>
+            <button @click="logout">Sair</button>
+
+            <router-view></router-view>
+        </div>
+    </template>
+
+    <script>
+    export default {
+        methods: {
+        logout() {
+          this.$store.dispatch('auth/logout');
+          this.$router.push('/login');
+        }
+      }
+    }
+    </script>
+
+21 - Trazendo informação da memória para a interface. Para isso, incluímos a função data() no script do layout como abaixo.
+
+    <template>
+        <div>
+          {{ user }}
+          {{ isAuth }}
+            <NuxtLink to="/">Index</NuxtLink>
+            <NuxtLink to="cadastro">Cadastro</    NuxtLink>
+            <button @click="logout">Sair</button>
+
+            <router-view></router-view>
+        </div>
+    </template>
+
+    <script>
+    export default {
+      data() {
+          return {
+            user: this.$store.getters['auth/info'],
+            isAuth: this.$store.getters['auth/    isAuthenticated']
+          }
+      },
+        methods: {
+        logout() {
+          this.$store.dispatch('auth/logout');
+          this.$router.push('/login');
+        }
+      }
+    }
+    </script>
+
+OBS: é possível observar que o valor isAuthenticated está como 'true'. Algo na implementação desses métodos não está funcionando.
+
+22 - Formulário de edição de produto. Para isso, criamos uma pasta 'produto', dentro de 'pages', contendo um arquivo 'edicao.vue', com o seguinte código.
+
+    <template>
+        <div>
+            Nome:
+            <input v-model="nome">
+            Descrição:
+            <input v-model="descricao">
+            <button @click="salva" :disabled="invalido">Salvar</button>
+            {{ mensagem }}
+        </div>
+    </template>
+
+    <script>
+    export default {
+        data() {
+            return {
+                id: this.$route.query.id,
+                nome: null,
+                descricao: null,
+                mensagem: null
+            }
+        },
+        computed: {
+            invalido() {
+                if(this.nome == null 
+                || this.nome ==''
+                || this.descricao == null
+                || this.descricao ==''){
+                    return true;
+                }
+                return false;
+
+            }
+        },
+        methods: {
+            load() {
+                this.$axios.get('http://localhost:8081/product/' + this.id)
+                    .then((resposta) => {
+                        this.nome = resposta.data.name;
+                        this.descricao = resposta.data.description;
+                    })
+                    .catch((e) => {
+                        alert(e);
+                    });
+            },
+            salva() {
+                this.$axios.post('http://localhost:8081/product',
+                    {
+                        id: this.id,
+                        name: this.nome,
+                        description: this.descricao
+                    }
+                )
+                    .then((res) => {
+                        this.mensagem = 'Salvo com sucesso!';
+                    })
+                    .catch((e) => {
+                        alert(e);
+                    })
+            }
+        },
+        mounted() {
+            this.load();
+        }
+    }
+    </script>
+
+    <style scoped></style>
+
+E na página 'cadastro', criamos o objeto 'product', que recebe as informações do item selecionado, incluímos o método 'edita', e um botão que chama o método. Esse método redireciona para a página 'edicao', enviando as informações do produto e preenchendo os campos devidos com tais informações.
+
+    <template>
+      <div>
+        <table
+          v-if="product.length > 0">
+          <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th></th>
+          </tr>
+          <tr v-for="produto in product"
+          :key="produto.id">
+            <td>{{ produto.id }}</td>
+            <td>{{ produto.name }}</td>
+            <td><button @click="edita(produto.id)">Editar</button></td>
+          </tr>
+        </table>
+      </div>
+    </template>
+
+    <script>
+    export default {
+      name: 'CadastroPage',
+      layout: 'MainPage',
+      middleware: 'authenticated',
+      data() {
+        return {
+          product: []
+        }
+      },
+      methods: {
+        load() {
+            this.$axios.get('http://localhost:8081/product')
+            .then((resposta) => {  
+              this.product = resposta.data;
+            })
+            .catch((e) => {
+              alert(e);
+            });
+        },
+        edita(id) {
+          this.$router.push('produto/edicao?id=' + id)
+        }
+      },
+      created() {
+        this.load();
+      }
+    }
+    </script>
+
+23 - Exclusão de registros. Criamos uma nova coluna na tabela, em 'cadastro', com botão que chama o método 'delete'.
+
+    <table
+      v-if="product.length > 0">
+      <tr>
+        <th>Id</th>
+        <th>Nome</th>
+        <th></th>
+        <th></th>
+      </tr>
+      <tr v-for="produto, index in product"
+      :key="produto.id">
+        <td>{{ produto.id }}</td>
+        <td>{{ produto.name }}</td>
+        <td><button @click="edita(produto.id)">Editar</button></td>
+        <td><button @click="remove(produto.id, index)">Excluir</button></td>
+      </tr>
+    </table>
+
+método 'remover' exclui no banco de dados e remove o item da lista que possui o index informado.
+
+    remove(id, index){
+      this.$axios.delete('http://localhost:8081/product/' + id)
+      .then((res) => {
+        this.product.splice(index, 1);
+      })
+    }
+
+OBS: 'splice' é uma função do Javascript que remove x elementos a partir do index informado, onde x é o segundo parâmetro indicado (no caso, 1).  
+
+
+---------------------- DEPLOYMENT ----------------------
+
+Para o deploy, o Nuxt oferece duas opções:
+- SPA (Single Page Application) - browser faz o download de toda a aplicação, mantendo-a no navegador do usuário. Carregamento inicial mais lento.
+- SSR (Server Side Rendering) - o servidor é responsável por processar o acesso do usuário, renderizar a tela e envia ao usuário na forma de HTML (estático). Carregamento sob demanda. Opção interessante para otimização de SEO, pois o conteúdo das páginas HTML estão no servidor.
+
+No arquivo 'nuxt.config.js', a configuração 'target' pode receber duas opções:
+
+    target = 'static',        --> gera SPA
+
+ou
+
+    target = 'server',        --> gera SSR ('server' é o padrão do nuxt, caso essa configuração seja removida)
+
+A opção 'static' gera um diretório com uma página estática, que roda dentro de um servidor HTTP, como um servidor Apache, que roda na máquina do usuário.
+
+A opção 'server' gera um diretório contendo arquivos que permitirão rodar o projeto em um servidor node, no lado do servidor.
+
+24 - Gerando o Build.
+
+Para opção 'static', utilizar o comando
+
+        npm run generate
+
+    Então, no diretório onde está localizado a pasta 'nuxt' gerada, rodar o seguinte comando, para rodar em produção:
+
+        npm run start
+
+Para opção 'server', utilizar o comando
+
+        npm run build
+    
+    O diretório gerado recebe o nome 'dist' e deve ser colocado dentro de um servidor Apache. Esse diretório possui o arquivo '200.html'. Altere o nome para 'index.html', para que o Apache o reconheça como página principal.
+
+        npm run start
+
+
+---------------------- ADICIONAIS ----------------------
+
+25 - Internacionalização. Para isso, são utilizados arquivos para cada lingua, contendo estruturas chave-valor. Para isso, será inserido o plugin 'i18n' ao projeto.
+
+    npm i @nuxtjs/i18n
+
+E habilitar o módulo no 'nuxt.config.js'
+
+    modules: [
+      '@nuxtjs/axios',
+      '@nuxtjs/i18n'
+    ],
+
+E incluir, no próprio 'nuxt.config.js' a variável 'i18n', indicando o local onde o arquivo está localizado e o nome do arquivo.
+
+    i18n: {
+      locales: [
+        {
+          code: 'pt',
+          file: 'pt-BR.js'
+        }
+      ],
+      lazy: true,
+      langDir: 'lang/',
+      defaultLocale: 'pt'
+    },
+
+Então, criamos a pasta 'lang', contendo o arquivo 'pt-BR.js'.
+
+    export default {
+        Nome: 'Nome',
+        Descricao: 'Descrição'
+    }
+
+Então, onde esses valores devem ser inseridos, chamar como abaixo:
+
+    {{$i18n.t('Nome')}}
+
+OBS: como não funcionou, deixaremos sem essa funcionalidade.
+
+26 - CSS Global. Criar diretorio 'assets\css' na raiz do projeto. Dentro dele, o arquivo 'main.css'.
+
+    body {
+        padding: 20px;
+        background: #45793f;
+        font-size: 16px;
+    }
+    input {
+        padding: 10px;
+        border: 1px solid black     !important;
+        background: white !important;
+    }
+
+Então, em 'nuxt.config.js', configurar o estilo.
+
+    // Global CSS: https://go.nuxtjs.dev/config-css
+    css: [
+      '~/assets/css/main.css'
+    ],
+
+
+27 - UI com Vuetify
+
+Instalar o pacote
+
+    npm install @nuxtjs/vuetify -D
+
+Configura em 'nuxt.config.js'
+
+    // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
+    buildModules: [
+      '@nuxtjs/vuetify'
+    ],
+
+Então, implementar estruturas do framework nos componentes
+
+    <v-btn
+      @click="login">
+    Entrar
+    </v-btn>
+
+    em vez de
+
+    <button
+      @click="login">
+    Entrar
+    </button>
