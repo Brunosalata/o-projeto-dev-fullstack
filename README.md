@@ -19,3 +19,17 @@ Modulos desenvolvidos ao longo do curso O Projeto Dev
 <li>Autenticação por token (jwt)</li>
 <li>Filtro de rotas (acesso liberado apenas a Usuários autenticados, com token válido)</li>
 </p>
+
+### 4 - Mail Service
+<p>Mail service</p>
+
+### 5 - Front end
+<p>Front end com Nuxt.js, baseado em Vue.js</p>
+<p>Plugins e módulos:</p>
+<li>local storage - armazenamento em memória</li>
+<li>axios - REST</li>
+<li>i18n - internacionalização</li>
+<li>Vuetify - interface</li>
+
+### 6 - Gerando Aplication Android (apk)
+<p>Utilizando a ferramenta Capacitor</p>

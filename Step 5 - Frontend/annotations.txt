@@ -950,3 +950,170 @@ Então, implementar estruturas do framework nos componentes
       @click="login">
     Entrar
     </button>
+
+---------------------- GERANDO APP ----------------------
+
+28 - Utilizando a ferramenta Capacitor para gerar um projeto Android/IOS a partir do mesmo codigo
+
+    https://capacitorjs.com/solution/vue
+
+Instalação do Capacitor no projeto
+
+    npm install @capacitor/core @capacitor/cli
+
+    npx cap init frontend com.brunosalata.fullstackproject --web-dir=dist
+
+Será gerado o arquivo 'capacitor.config.json' na raiz da aplicação frontend
+
+Gerar o build com base na opção da target para deploy em 'nuxt.config.js'
+
+    npm run build  
+
+    ou
+
+    npm run generate
+
+Então, instalar e adicionar as bibliotecas para sistemas desejados (Android ou IOS)
+
+    Caso vá rodar em ambos, adicionar as bibliotecas para ambos. Se não, apenas para uma
+    
+        npm i @capacitor/ios @capacitor/android
+
+    Então, adicionar ao projeto (apenas uma ou ambas)
+
+        npx cap add android
+
+        npx cap add ios
+
+    Quando finalizado o processo de adição, uma pasta 'Android' será criada na raiz do projeto. Ela será o projeto android dessa aplicação.
+
+29 - Importar o projeto Android para o Android Studio, selecionar a pasta pricipal 'app', no menu superior 'Build' > 'Build App Bundle(s) / APK(s)' > 'Build APK(s)'
+
+Esse processo originará um arquivo .apk na pasta Android > output.
+
+A aplicação poderá ser instalada em um amulador, como BlueStack.
+
+
+30 - Alterando Icon e Splash no aplicativo. No projeto 'Android > app', estão localizadas as pastas 'res > drawable > splash' e a pasta 'res > mipmap > ic_launcher'
+
+Splash: pegar as dimensões de cada arquivo (png) e criar um outro com as mesmas medidas, ms substituindo o conteúdo. Cada tela é aplicada em uma dimensão de tela.
+
+Icon: substituir os arquivos igualmente aos de splash 
+
+
+31 - Utilizando plugins de acesso a recursos (APIs) nativos dos aparelhos. 'Capacitor' nos permite isso, com a inclusão de plugins (vide site)
+
+Por exemplo, geolocalização.
+
+    npm install @capacitor/geolocation
+
+Então, sincronizamos todos os arquivos gerados até agora a partir do comando abaixo, mas realizar a criação do arquivo 'Geolocalizacao.vue' e outras alterações primeiro:
+
+    npx cap sync
+
+
+32 - Criando componente 'Geolocalizacao.vue'. Copiar modelo do site do Capacitor
+
+    <template>
+    <div>
+      <h1>Geolocation</h1>
+      <p>Your location is:</p>
+      <p>Latitude: {{ loc.lat }}</p>
+      <p>Longitude: {{ loc.long }}</p>
+
+      <button @click="getCurrentPosition">
+        Get Current Location
+      </button>
+    </div>
+    </template>
+
+    <script>
+    import { defineComponent, ref } from 'vue';
+    import { Geolocation } from '@capacitor/geolocation';
+    export default defineComponent({
+      setup() {
+        const loc = ref<{
+          lat: null | number;
+          long: null | number;
+        }>({
+          lat: null,
+          long: null,
+        });
+
+        const getCurrentPosition = async () => {
+          const pos = await Geolocation.getCurrentPosition();
+          loc.value = {
+            lat: pos.coords.latitude,
+            long: pos.coords.longitude,
+          };
+        };
+        return { getCurrentPosition, loc };
+      },
+    });
+    </script>
+
+Como o codigo acima está na forma do Vue 3, ajustamos para a forma do Vue 2, utilizado para desenvolver esse projeto.
+
+    <template>
+      <div>
+        <div v-if="coords">
+          <h1>Geolocalização</h1>
+          <p>Localização atual:</p>
+          <p>Latitude: {{ coords.latitude }}</p>
+          <p>Longitude: {{ coords.longitude }}</p>
+        </div>
+        <div v-if="erro">
+          {{ erro }}
+        </div>
+      </div>
+    </template>
+
+    <script>
+    // Essa forma de importação define a aplicação do plugin
+    import { Geolocation } from '@capacitor/geolocation'; 
+    export default {
+      data() {
+        return {
+          coords: null,
+          erro: null
+        }
+      },
+      methods: {
+        getCurrentPosition() {
+          Geolocation.getCurrentPosition()
+          .then((res) => {
+            this.coords = res.coords;
+            console.log(res);
+          })
+          .catch((e) => {
+            this.erro = e;
+          })
+        }
+      },
+      mounted() {
+        this.getCurrentPosition();
+      }
+    }
+    </script>
+
+Feito isso, inclua o componente na página desejada (login.vue, por exemplo). O Vue mapeia as pastas e fará a importação automaticamente.
+
+    <Geolocalizacao/>
+
+
+33 - Atualizando APK
+
+Após alterar o projeto Vue, aplicar comando de deploy (npm run generate ou npm run build). Então, aplicar o comando fornecido pelo Capacitor, para sincronizar os arquivos do deploy do projeto com os arquivos da pasta 'android'
+
+    npx cap sync
+
+Mas antes de fazer o build do aplicativo, precisamos fornecer a permissão para que o aplicativo acesse a gelocalização no aparelho. Esse e outros recursos estão disponíveis no site do Capacitor, cada API demanda um comando de acesso no manifesto dentro de 'android'
+
+34 - Alterando Manifest no projeto 'android'. 'app' > 'manifests' > 'AndroidManifest.xml'
+
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Geolocation API -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-feature android:name="android.hardware.location.gps" />
